@@ -2,16 +2,121 @@
     use Illuminate\Support\Facades\DB;
     $proys = DB::table('projects')->get();
     $invs = DB::table('investigators')->get();
+    $publications = DB::table('publications')->get();
+    $authors = DB::table('publication_invs')->get();
     $names = [];
     $i=0;
     $couunis = DB::table('country_units')->get();
     $cu = [];
 @endphp
 
-@extends((Auth::user()->user_type == 'ADMINISTRADOR')? 'layouts.admin': 'layouts.inv') 
+@extends(isset(Auth::user()->user_type) ? (Auth::user()->user_type == 'ADMINISTRADOR')? 'layouts.admin': 'layouts.inv' : 'layouts.people')
 @extends('layouts.footer')
 
 <head>
+<script type="text/javascript">
+    var titleOr = '';
+</script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+    function editarPublicacion(publication) {
+        $("#titleOr").val(publication.title);
+
+
+        $("#editTitle").val(publication.title);
+        $("#editTitle2").val(publication.title2);
+        $("#editRevact").val(publication.revact);
+        $("#editDate").val(publication.date);
+        $("#editPubtype").val(publication.pubtype);
+        $("#editSubPubtype").val(publication.subpubtype);
+        $("#editProy").attr('value',publication.proy);
+        
+        
+    }
+    console.log('publication')
+
+    </script>
+    <script type="text/javascript">
+        $(document).on('click','.addEdit', function() {
+            $.ajaxSetup({
+              headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+              }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: 'editpub',
+                data: {
+                    '_token': $('input[name=_token]').val(),
+                    
+
+                    'title': $('input[name=editTitle]').val(),
+                    'title2': $('input[name=editTitle2]').val().toUpperCase(),
+                    'pubtype': $('input[name=editPubtype]').val().toUpperCase(),
+                    'subpubtype': $('input[name=editSubPubtype]').val(),
+                    'revact': $('input[name=editRevact]').val(),
+                    'date': $('input[name=editDate]').val(),
+
+                    'proy': $('input[name=editProy]').val(),
+                },
+                success: function(data){
+                    
+                                        
+
+                }
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+        
+        const INDX = [
+        {
+            value: "INDEXADA",
+            options : ["WOS", "SCOPUS", "SCIELO","OTRO INDICE"]
+        },{
+            value : "NO INDEXADA",
+            options : ["CONGRESO", "REVISTA"]
+        }
+    ]
+
+    $(document).ready(function() {
+        $("#editPubtype").on('change',function() {
+    // <!--Se obtiene la opcion seleccionada.-->
+        const valor = $(this).val();
+        //<!--// Obtener opciones para el select hijo-->
+        for(let i=0; i<INDX.length; i++) {
+            if (INDX[i].value == valor) {
+                const selectSubtipo = $("#editSubPubtype");
+
+                selectSubtipo.empty();
+
+                for (let j=0; j<INDX[i].options.length; j++) {
+                    const optionValue = INDX[i].options[j];
+                    const option = $('<option></option>').attr("value", optionValue).text(optionValue);
+                    selectSubtipo.append(option);
+                }
+            }
+        }
+    }
+    );
+    })
+    </script>
+    <!-- Favicon -->
+    <link rel="icon" href="imgTemp/icon.ico">
+
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        .btn-group-xs > .btn, .btn-xs {
+            padding: .25rem .4rem;
+            font-size: .875rem;
+            line-height: .5;
+            border-radius: .2rem;
+        }
+    </style>
     
     <!-- Favicon -->
     <link rel="icon" href="imgTemp/icon.ico">
@@ -93,7 +198,7 @@
     </script>
 
     <script type="text/javascript">
-      $(document).on('click','.add', function() {
+         $(document).on('click','.add', function() {
             $.ajaxSetup({
               headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -135,16 +240,16 @@
                             "extinv": extinv,
                             "assinv": assinv
                         });
-                        $('.successall').text('Investigador externo agregado');
+                        $('.successall').text('Publication externo agregado');
                         $('.successall').fadeIn().delay(3000).fadeOut();
                         console.log(extinv);
                     }
                     else{
-                        $('.errorname').text('Investigador externo ya agregado');
-                            }
+                        $('.errorname').text('Publication externo ya agregado');
                         }
+                    }
 
-                    },
+                },
                 });
 
                 $.ajax({
@@ -154,8 +259,8 @@
                     'extinv': extinv,
                     'assinv': assinv
                     },
-                  });
-      });
+                });
+           });
     </script> 
 </head>
 
@@ -292,12 +397,12 @@
                                         </span>                                    
                                         @endif
 
-                                            <table class="table table-striped" id="table">
+                                        <table class="table table-striped" id="table">
                                             <thead class="alert alert-info">
                                                 <tr>
                                                     <th>
                                                     <th>
-                                                    <th>Nombre investigador
+                                                    <th>Nombre publication
                                                     <th>
                                                     <th>Unidad asociada</th>
                                                 </tr>
@@ -323,30 +428,32 @@
                                             @php
                                                 Session::put('names_inv', $names);
                                             @endphp
-                                            </table>
-                                            @if (\Session::has('failedinv') || count($errors) > 0)
-                                                @if(\Session::has('extinv'))
-                                                    @for ($x = 0; $x < count(Session::get('extinv')); $x++)
-                                                         <script type="text/javascript">
+                                        </table>
+                                        @if (\Session::has('failedinv') || count($errors) > 0)
+                                            @if(\Session::has('extinv'))
+                                                @for ($x = 0; $x < count(Session::get('extinv')); $x++)
+                                                    <script type="text/javascript">
 
-                                                            var filaa = "<tr style='background-color:#D6F3E4;'>"+
-                                                                  "<td>"+
-                                                                  "<td>" + 
-                                                                  "<td>{{session()->get('extinv')[$x]}}</td>"+
-                                                                  "<td>" +
-                                                                  "<td>{{session()->get('assinv')[$x]}}</td>"+
-                                                                  "</tr>";
-                                                            $('.table').append(filaa);
-                                                            extinv.push("{{session()->get('extinv')[$x]}}");
-                                                            assinv.push("{{session()->get('assinv')[$x]}}")
-                                                         </script>
-                                                    @endfor
-                                                @endif
+                                                        var filaa = "<tr style='background-color:#D6F3E4;'>"+
+                                                                "<td>"+
+                                                                "<td>" + 
+                                                                "<td>{{session()->get('extinv')[$x]}}</td>"+
+                                                                "<td>" +
+                                                                "<td>{{session()->get('assinv')[$x]}}</td>"+
+                                                                "</tr>";
+                                                        $('.table').append(filaa);
+                                                        extinv.push("{{session()->get('extinv')[$x]}}");
+                                                        assinv.push("{{session()->get('assinv')[$x]}}")
+                                                    </script>
+                                                @endfor
                                             @endif
+                                        @endif
+                                        <a href="#" class="pull-left create-modal" data-toggle="modal" 
                                             <a href="#" class="pull-left create-modal" data-toggle="modal" 
-                                            data-target="#newinv" >Registrar investigador externo</a>
-                                       </div>
-                                  </div>
+                                        <a href="#" class="pull-left create-modal" data-toggle="modal" 
+                                        data-target="#newinv" >Registrar investigador externo</a>
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-group row mb-0">
                                 <div class="col-md-6 offset-md-4">
@@ -386,73 +493,219 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="container" style="margin-top:30px;">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <table class="table table-striped">
+                    <thead class="alert alert-info">
+                        <th style="text-">Titulo</th>
+                        <th style="text-">Titulo en otro dioma</th>
+                        <th style="text-">Tipo</th>
+                        <th style="text-">Subtipo</th>
+                        <th style="text-">Revista/Acta</th>
+                        <th style="text-">Fecha</th>
+                        <th style="text-">Proyecto</th>
+                        <th style="text-">Autores</th>
+                        
+                        
+                        <th style="text-align:center"> </th>
+                    </thead>
+                    <tbody>
+                        @foreach($publications as $pub)
+                            <tr>
+                                <td style="text-">{{$pub->title}}</td>
+                                
+                                
+                                <td>{{$pub->title2}}</td>
+                                <td>{{$pub->pubtype}}</td>
+                                <td>{{$pub->subpubtype}}</td>
+                                <td>{{$pub->revact}}</td>
+                                <td>{{$pub->date}}</td>
+                                <td>{{$pub->proy}}</td>
+                                                                
+                                <!--Lista de autores se despliega hacia abajo con boton-->
+                                <!--<td>{{$pub->created_at}}</td> -->
+                                <td><select name="autor" class="form-control" required>
+                                
+                                    @foreach($authors as $autor)
+                                        
+                                        @if(($autor->title_inv)==($pub->title))
+                                            <option>{{$autor->nameinv}}</option>
+                                        @endif
+                                        
+                                    @endforeach
+                                    
+                                </td>
+
+                                <td style="text-"><button onclick="editarPublicacion({{ json_encode($pub)}} )" id=<?php echo("editBtn".$loop->index)?> type="button" class="btn-success btn-xs" data-toggle="modal" 
+                                data-target="#editpub"><i class="fa fa-pencil-square-o" aria-hidden="true"></i>Editar</button></td>
+                                
+                            </tr>
+                        @endforeach
+                    </tbody> 
+                </table>
+            </div>
+        </div>
     </div>
 </section>
 <!-- ***** Contact Area End ***** -->
 
 <div id="newinv" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Registra un investigador externo</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form class="form-horizontal" role="form">
-            <div class="form-group row">
-                <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Nombre completo') }}</label>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registra un investigador externo</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+            <form class="form-horizontal" role="form">
+                <div class="form-group row">
+                    <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Nombre completo') }}</label>
 
-                <div class="col-md-7">
-                    <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
-                        <strong class="errorname"></strong>
-                    </span>
+                    <div class="col-md-7">
+                        <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorname"></strong>
+                        </span>
+                    </div>
+
                 </div>
 
-            </div>
+                <div class="form-group row">
+                    <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('N° de pasaporte') }}</label>
 
-            <div class="form-group row">
-                <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('N° de pasaporte') }}</label>
-
-                <div class="col-md-7">
-                    <input id="passportnumber" type="text" class="form-control @error('name') is-invalid @enderror" name="passportnumber" value="{{ old('passportnumber') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
-                        <strong class="errorpass"></strong>
-                    </span>
+                    <div class="col-md-7">
+                        <input id="passportnumber" type="text" class="form-control @error('name') is-invalid @enderror" name="passportnumber" value="{{ old('passportnumber') }}" required autocomplete="name" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group row">
-                <label for="password" class="col-md-6 col-form-label text-md-right">{{ __('Unidad correspondiente') }}</label>
-                <div class="col-md-4">
-                    <select name="associatedunit" class="form-control assu">
-                    @foreach($couunis as $couuni)
-                        @if(!in_array($couuni->unit, $cu))
-                            @php
-                                $cu[] = $couuni->unit;
-                            @endphp
-                        @endif
-                    @endforeach
-                    @foreach($cu as $c)
-                        <option value="{{$c}}" 
-                                    @if(old('associatedunit') == $c) 
-                                        selected 
-                                    @endif>{{$c}}</option>>
-                    @endforeach
-                    </select>
+                <div class="form-group row">
+                    <label for="password" class="col-md-6 col-form-label text-md-right">{{ __('Unidad correspondiente') }}</label>
+                    <div class="col-md-4">
+                        <select name="associatedunit" class="form-control assu">
+                        @foreach($couunis as $couuni)
+                            @if(!in_array($couuni->unit, $cu))
+                                @php
+                                    $cu[] = $couuni->unit;
+                                @endphp
+                            @endif
+                        @endforeach
+                        @foreach($cu as $c)
+                            <option value="{{$c}}" 
+                               @if(old('associatedunit') == $c) 
+                                    selected 
+                                        
+                                @endif>{{$c}}</option>>
+                        @endforeach
+                        </select>
+                    </div>
                 </div>
+            </form>
+            <span class="success-feedback d-block" align="center" role="alert">
+                <strong class="successall" style="color:#3BBF6C;"></strong>
+            </span>
             </div>
-        </form>
-        <span class="success-feedback d-block" align="center" role="alert">
-            <strong class="successall" style="color:#3BBF6C;"></strong>
-        </span>
-      </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-success add" id="add">
-                {{ __('Registrar publicación') }}
-            </button>
-          </div>
+                <div class="modal-footer">
+                <button type="submit" class="btn btn-success add" id="add">
+                    {{ __('Registrar investigador externo') }}
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+
+<!--editar informacion-->
+<div id="editpub" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title titula">Editar una publicacion existente</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+        
+            <div class="modal-body">
+                <form method="POST" action="{{ route('registerpub') }}" class="form-horizontal" >
+
+                @csrf
+                <input name="_method" type="hidden" value="PUT">
+                <input hidden name="titleOr" id="titleOr" value="titleOr"/>
+
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Titulo') }}</label>
+
+                    <div class="">
+                        <input id="editTitle" type="text" class="form-control" name="title" value="{{ old('editTitle') }}" required autocomplete="editTitle" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorname"></strong>                            <strong class="errorname"></strong>
+                        </span>
+                    </div>
+                
+                </div>
+
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Titulo en otro idioma') }}</label>
+
+                    <div class="">
+                        <input id="editTitle2" type="text" class="form-control" name="title2" value="{{ old('editTitle2') }}" required autocomplete="editTitle2" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
+                </div>
+                <div class= "form-group">
+                    <label for="editPubtype">Tipo</label>
+                        <select class="form-control state" name="pubtype" id= "editPubtype">
+                            <option value="INDEXADA">INDEXADA</option>
+                            <option value="NO INDEXADA">NO INDEXADA</option>
+                        </select>
+                </div>
+                <div class= "form-group">
+                    <label for="editSubPubtype">Sub tipo</label>
+                        
+                        <select class="form-control state" name="subpubtype" id= "editSubPubtype">
+                                
+                                
+                        
+                        </select>
+                </div>
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Revista / Acta') }}</label>
+
+                    <div class="">
+                        <input id="editRevact" type="text" class="form-control" name="revact" value="{{ old('editRevact') }}" required autocomplete="editRevact" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Proyecto') }}</label>
+
+                    <div class="">
+                        <input id="editProy" type="text" class="form-control" name="proy" value="{{ old('editProy') }}" required autocomplete="editProy" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
+                </div>
+                <span class="success-feedback d-block" align="center" role="alert">
+                <strong class="successall" style="color:#3BBF6C;"></strong>
+                </span>
+            </div> 
+                                   
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success addEdit" id="addEdit">
+                    {{ __('Editar publicacion') }}
+                </button>
+            </div> 
+            </form>
+        </div>
+    </div>
 </div>
 

@@ -285,7 +285,7 @@
                                 <td>{{$proy->date_end}}</td>
                                 
                                 <td style="text-"><button onclick="editarProyecto({{ json_encode($proy)}} )" id=<?php echo("editBtn".$loop->index)?> type="button" class="btn-success btn-xs" data-toggle="modal" 
-                                data-target="#editinv"><i class="fa fa-pencil-square-o" aria-hidden="true"></i>Editar</button></td>
+                                data-target="#editproy"><i class="fa fa-pencil-square-o" aria-hidden="true"></i>Editar</button></td>
                                 
                             </tr>
                             @endforeach
@@ -296,83 +296,84 @@
             </div>
 </section>
 <!-- ***** Contact Area End ***** -->
-<div id="editinv" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title titula">Editar este proyecto</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form method="post" action="{{ route('registerproject') }}" class="form-horizontal" >
-        @csrf
-        <input name="_method" type="hidden" value="PUT">
-            <input hidden name="id" id="editId" value="j"/>
-            <div class="form-group ">
-                <label for="name" class="">{{ __('Proyecto') }}</label>
 
-                <div class="">
-                    <input id="editProyect" type="text" class="form-control @error('name') is-invalid @enderror" name="name_project" value="{{ old('name') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
+<!-- editarinformacion-->
+<div id="editproy" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title titula">Editar este proyecto</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <form method="post" action="{{ route('registerproject') }}" class="form-horizontal" >
+                @csrf
+                <input name="_method" type="hidden" value="PUT">
+                <input hidden name="id" id="editId" value="j"/>
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Proyecto') }}</label>
+
+                    <div class="">
+                        <input id="editProyect" type="text" class="form-control @error('name') is-invalid @enderror" name="name_project" value="{{ old('name') }}" required autocomplete="name" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
                         <strong class="errorname"></strong>
-                    </span>
+                        </span>
+                    </div>
+
                 </div>
 
-            </div>
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Codigo') }}</label>
 
-            <div class="form-group ">
-                <label for="name" class="">{{ __('Codigo') }}</label>
-
-                <div class="">
-                    <input id="editCode" type="text" class="form-control @error('name') is-invalid @enderror" name="code" value="{{ old('code') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
-                        <strong class="errorpass"></strong>
-                    </span>
+                    <div class="">
+                        <input id="editCode" type="text" class="form-control @error('name') is-invalid @enderror" name="code" value="{{ old('code') }}" required autocomplete="name" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
                 </div>
-            </div>
 
 
-            <div class= "form-group">
-            <label for="editState">Estado</label>
-                <select class="form-control assu" name="state" id= "editState">
-                    <option value="EN EJECUCION">EN EJECUCION</option>
-                    <option value="CANCELADO">CANCELADO</option>
-                    <option value="FINALIZADO">FINALIZADO</option>
-                </select>
-            </div>
-            <div class="form-group ">
-                <label for="name" class="">{{ __('Fecha Inicio') }}</label>
-
-                <div class="">
-                    <input id="editIni" type="text" class="form-control @error('name') is-invalid @enderror" name="date_start" value="{{ old('date_start') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
-                        <strong class="errorpass"></strong>
-                    </span>
+                <div class= "form-group">
+                <label for="editState">Estado</label>
+                    <select class="form-control assu" name="state" id= "editState">
+                        <option value="EN EJECUCION">EN EJECUCION</option>
+                        <option value="CANCELADO">CANCELADO</option>
+                        <option value="FINALIZADO">FINALIZADO</option>
+                    </select>
                 </div>
-            </div>
-            <div class="form-group ">
-                <label for="name" class="">{{ __('Fecha Termino') }}</label>
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Fecha Inicio') }}</label>
 
-                <div class="">
-                    <input id="editFin" type="text" class="form-control @error('name') is-invalid @enderror" name="date_end" value="{{ old('date_end') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
-                        <strong class="errorpass"></strong>
-                    </span>
+                    <div class="">
+                        <input id="editIni" type="text" class="form-control @error('name') is-invalid @enderror" name="date_start" value="{{ old('date_start') }}" required autocomplete="name" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
                 </div>
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Fecha Termino') }}</label>
+
+                    <div class="">
+                        <input id="editFin" type="text" class="form-control @error('name') is-invalid @enderror" name="date_end" value="{{ old('date_end') }}" required autocomplete="name" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
+                </div>
+                <span class="success-feedback d-block" align="center" role="alert">
+                <strong class="successall" style="color:#3BBF6C;"></strong>
+                </span>
             </div>
-            
-            <button type="submit" class="btn btn-success add" id="add">
-                Editar Proyecto
-            </button>
-        </form>
-        <span class="success-feedback d-block" align="center" role="alert">
-            <strong class="successall" style="color:#3BBF6C;"></strong>
-        </span>
-      </div>
-          <div class="modal-footer">
-            
-          </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success add" id="add">
+                 Editar Proyecto
+                 </button>
+            </div>
+            </form>
+        </div>
     </div>
-  </div>
 </div>
 

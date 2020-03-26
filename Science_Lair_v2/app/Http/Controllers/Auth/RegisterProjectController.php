@@ -109,6 +109,7 @@ class RegisterProjectController extends Controller
     }
     public function edit(Request $request){
         $proy = Project::findOrFail($request->id);
+        
 
         $uniqueValidation = strcmp($request->input("project"), $proy->name_project) == 0 ? "" : "unique:project";
         
@@ -118,7 +119,7 @@ class RegisterProjectController extends Controller
         $proy->date_start = $request->input("date_start");
         $proy->date_end = $request->input("date_end");
         $proy->save();
-        
+
         return back();
     }
 
@@ -129,6 +130,12 @@ class RegisterProjectController extends Controller
                 'namepro' => strtoupper($data['name_project']),
                 'name_inv' => $names[$i],
             ]);
+        }
+    }
+
+    protected function delProj_inv(array $data, array $names){
+        for($i = 0; $i < count($names); $i++){
+            Project_Inv::find($data['name_project'])->delete();
         }
     }
 }

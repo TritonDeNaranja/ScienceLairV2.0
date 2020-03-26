@@ -59,23 +59,61 @@ class RegisterInvController extends Controller
 
         return redirect($this->redirectPath());
     }
+
     public function edit(Request $request){
+
+        if($request->nameOr == $request->name){
+            $inv = Investigator::findOrFail($request->input("id"));
+            $inv->passportnumber = $request->input("passportnumber");
+            $inv->state = $request->input("state");
+            $inv->associatedunit = $request->input("associatedunit");
+            $inv->save();
+            return $request;
+        }
+
+        if ($this->validator($request->all())->fails()) {
+            $errors = $this->validator($request->all())->errors()->getMessages();            
+            $clientErrors = array();
+            foreach ($errors as $key => $value) {
+                $clientErrors[$key] = $value[0];
+            }
+            $response = array(
+                'status' => 'error',
+                'response_code' => 201,
+                'errors' => $clientErrors
+            );
+            return $response;
+
+        }
+
+        $this->validator($request->all())->validate();
+            $response = array(
+                'status' => 'success',
+                'response_code' => 200,
+                'name' => $request->name,
+                'passportnumber' => $request->passportnumber,
+                'state' => $request->state,
+                'associatedunit' => $request->associatedunit,
+                'nameOr' => $request->nameOr
+        );
+        
         $inv = Investigator::findOrFail($request->input("id"));
-
-        $uniqueValidation = strcmp($request->input("name"), $inv->name) == 0 ? "" : "unique:investigators";
-        $request->validate([
-            'name' => 'required|regex:/^[a-zA-ZáéíóúÁÉÍÓÚ]+\s[a-zA-ZáéíóúÁÉÍÓÚ]+\s[a-zA-ZáéíóúÁÉÍÓÚ]+\s([a-zA-ZáéíóúÁÉÍÓÚ]+\s?)+$/|max:255|'.$uniqueValidation,
-            'passportnumber'  => 'required|string'
-            ]);
-
         $inv->name = $request->input("name");
         $inv->passportnumber = $request->input("passportnumber");
         $inv->state = $request->input("state");
         $inv->associatedunit = $request->input("associatedunit");
         $inv->save();
-        return back();
+        return $response;
+        //echo json_encode($response);
     }
 
+    protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'name' => ['required', 'regex:/^[a-zA-ZáéíóúÁÉÍÓÚ]+\s[a-zA-ZáéíóúÁÉÍÓÚ]+\s[a-zA-ZáéíóúÁÉÍÓÚ]+\s([a-zA-ZáéíóúÁÉÍÓÚ]+\s?)+$/', 'unique:investigators'],
+            'passportnumber' => ['required', 'string'],
+        ]);
+    }
 
     /**
      * Create a new user instance after a valid registration.

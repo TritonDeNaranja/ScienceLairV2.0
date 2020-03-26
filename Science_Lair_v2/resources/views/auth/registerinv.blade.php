@@ -9,17 +9,62 @@
 @extends('layouts.footer')
 
 <head>
+<script type="text/javascript">
+    var nameOr = '';
+</script>
+
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script>
     function editarInvestigador(investigador) {
+        $("#nameOr").val(investigador.name);
         $("#editName").val(investigador.name);
         $("#editPassportnumber").val(investigador.passportnumber);
         $("#editAssociatedunit").val(investigador.associatedunit);
         $("#editState").val(investigador.state);
         $("#editId").attr('value',investigador.id);
-        console.log(investigador)
+        //console.log(investigador)
     }
 
+    </script>
+
+    <script type="text/javascript">
+      $(document).on('click','.addEdit', function() {
+            $.ajaxSetup({
+              headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+              }
+            });
+
+            $.ajax({
+              type: 'POST',
+              url: 'editinv',
+              data: {
+                '_token': $('input[name=_token]').val(),
+                'id': $('input[name=id]').val(),
+                'name': $('input[name=editName]').val().toUpperCase(),
+                'nameOr': $('input[name=nameOr]').val().toUpperCase(),
+                'passportnumber': $('input[name=editPassportnumber]').val(),
+                'state': $('.state').val(),
+                'associatedunit': $('.assu').val(),
+            },
+            success: function(data){
+                if ((data.errors)) {
+                    if(data.errors.name){
+                        $('.errorname').text(data.errors.name);
+                        $('.errorname').fadeIn().delay(2500).fadeOut();
+                    }
+                    if(data.errors.passportnumber){
+                        $('.errorpass').text(data.errors.passportnumber);
+                        $('.errorpass').fadeIn().delay(2500).fadeOut();
+                        }
+                }else{
+                    //console.log(data);
+                    location.reload();
+                }
+
+            }
+        });
+    });
     </script>
     <!-- Favicon -->
     <link rel="icon" href="imgTemp/icon.ico">
@@ -109,9 +154,9 @@
                                 @endforeach
                                 @foreach($cu as $c)
                                     <option value="{{$c}}" 
-                                                @if(old('associatedunit') == $c) 
-                                                    selected 
-                                                @endif>{{$c}}</option>>
+                                        @if(old('associatedunit') == $c) 
+                                            selected 
+                                        @endif>{{$c}}</option>>
                                 @endforeach
                                 </select>
                             </div>
@@ -174,15 +219,15 @@
                         <thead class="alert alert-info">
                                 <th style="text-align:center">Nombre completo
                                 <th>
-                                <th style="text-align:center">Número pasaporte</th>
-                                <th style="text-align:center">Unidad correspondiente</th>
-                                <th style="text-align:center">Estado</th>
-                                <th style="text-align:center"> </th>
+                                <th style="">Número pasaporte</th>
+                                <th style="">Unidad correspondiente</th>
+                                <th style="">Estado</th>
+                                <th style=""> </th>
                         </thead>
                         <tbody>
                             @foreach($invs as $inv)
                             <tr>
-                                <td style="text-align:center">{{$inv->name}}</td>
+                                <td style="">{{$inv->name}}</td>
                                 <td></td>
                                 <td>{{$inv->passportnumber}}</td>
                                 <td>{{$inv->associatedunit}}</td>
@@ -206,38 +251,39 @@
 <!-- ***** Contact Area End ***** -->
 
 <div id="editinv" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
         <h5 class="modal-title titula">Editar un investigador existente</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form method="post" action="{{ route('registerinv') }}" class="form-horizontal" >
-        @csrf
-        <input name="_method" type="hidden" value="PUT">
-            <input hidden name="id" id="editId" value="j"/>
-            <div class="form-group ">
-                <label for="name" class="">{{ __('Nombre completo') }}</label>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal" role="form">
+            @csrf
+            <input name="_method" type="hidden" value="PUT">
+                <input hidden name="id" id="editId" value="j"/>
+                <input hidden name="nameOr" id="nameOr" value="j"/>
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('Nombre completo') }}</label>
 
-                <div class="">
-                    <input id="editName" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
-                        <strong class="errorname"></strong>
-                    </span>
+                    <div class="">
+                        <input id="editName" type="text" class="form-control" name="editName" value="{{ old('editName') }}" required autocomplete="editName" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorname"></strong>
+                        </span>
+                    </div>
+
                 </div>
 
-            </div>
+                <div class="form-group ">
+                    <label for="name" class="">{{ __('N° de pasaporte') }}</label>
 
-            <div class="form-group ">
-                <label for="name" class="">{{ __('N° de pasaporte') }}</label>
-
-                <div class="">
-                    <input id="editPassportnumber" type="text" class="form-control @error('name') is-invalid @enderror" name="passportnumber" value="{{ old('passportnumber') }}" required autocomplete="name" autofocus>
-                    <span class="invalid-feedback d-block" role="alert">
-                        <strong class="errorpass"></strong>
-                    </span>
-                </div>
+                    <div class="">
+                        <input id="editPassportnumber" type="text" class="form-control" name="editPassportnumber" value="{{ old('editPassportnumber') }}" required autocomplete="editPassportnumber" autofocus>
+                        <span class="invalid-feedback d-block" role="alert">
+                            <strong class="errorpass"></strong>
+                        </span>
+                    </div>
             </div>
 
             <div class="form-group">
@@ -263,23 +309,22 @@
 
             <div class= "form-group">
             <label for="editState">Estado</label>
-                <select class="form-control assu" name="state" id= "editState">
+                <select class="form-control state" name="editState" id= "editState">
                     <option value="ACTIVO">ACTIVO</option>
                     <option value="INACTIVO">INACTIVO</option>
                 </select>
             </div>
             
-            <button type="submit" class="btn btn-success add" id="add">
-                Editar Investigador
-            </button>
         </form>
         <span class="success-feedback d-block" align="center" role="alert">
             <strong class="successall" style="color:#3BBF6C;"></strong>
         </span>
-      </div>
-          <div class="modal-footer">
-            
-          </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-success addEdit" id="addEdit">
+                {{ __('Editar investigador') }}
+            </button>
+        </div>
+        </div>
     </div>
-  </div>
 </div>

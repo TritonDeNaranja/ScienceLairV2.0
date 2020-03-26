@@ -39,6 +39,7 @@ Route::post('gestionargrupos', 'Auth\RegisterGestionarGruposController@upload');
 Route::get('registerinv', 'Auth\RegisterInvController@showRegistrationForm')->name('registerinv');
 Route::post('registerinv', 'Auth\RegisterInvController@register');
 //Editar Informacion del investigador
+Route::post('editinv', 'Auth\RegisterInvController@edit');
 Route::put('registerinv', 'Auth\RegisterInvController@edit');
 Route::put('registerproject', 'Auth\RegisterProjectController@edit');
 
@@ -49,7 +50,10 @@ Route::post('registerproject', 'Auth\RegisterProjectController@register');
 //Registrar nueva publicacion
 Route::get('registerpub', 'Auth\RegisterPubController@showRegistrationForm')->name('registerpub');
 Route::post('registerpub', 'Auth\RegisterPubController@register');
-
 Route::get('registerpubinv', 'Auth\RegisterPubController@showRegistrationForm')->name('registerpubinv');
 Route::post('registerpubinv', 'Auth\RegisterPubController@registerpubinv');
 Route::post('extinv', 'Auth\RegisterPubController@addextinv');
+
+
+Route::put('registerpub', 'Auth\RegisterPubController@edit');
+Route::post('editpub', 'Auth\RegisterPubController@edit');

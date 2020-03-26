@@ -121,6 +121,31 @@ class RegisterPubController extends Controller
             'passportnumber' => ['required', 'string'],
         ]);
     }
+    public function edit(Request $request){
+        
+        $pub = Publication::findOrFail($request->titleOr);
+        
+        $pub->title = $request->input("title");
+        $pub->title2 = $request->input("title2");
+        $pub->pubtype = $request->input("pubtype");
+        $pub->subpubtype = $request->input("subpubtype");
+        $pub->revact = $request->input("revact");
+        //$pub->date = $request->input("date");        
+        $pub->proy = $request->input("proy");
+        
+        //pub_inv->nameinv
+        $pub->save();
+        $response = array(
+            'status' => 'success',
+            'response_code' => 200
+        );
+        //echo json_encode($response);
+        return view('auth.registerpub');
+        return $response;
+        
+    }
+
+   
 
     /**
      * Create a new user instance after a valid registration.

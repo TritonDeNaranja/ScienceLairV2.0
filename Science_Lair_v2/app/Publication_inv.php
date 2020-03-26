@@ -9,4 +9,5 @@ class Publication_inv extends Model
 	protected $fillable = [
         'title_inv', 'nameinv',
     ];
+    
 }
